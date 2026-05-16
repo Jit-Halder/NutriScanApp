@@ -4,7 +4,7 @@
 
   **A modern, lightning-fast web app for scanning food barcodes to instantly reveal nutritional insights, Nutri-Score, and NOVA classifications.**
 
-  [![Live Demo](https://img.shields.io/badge/Demo-Live_Demo-success?style=for-the-badge)](https://github.com/Jit-Halder/NutriScan)
+  [![Live Demo](https://img.shields.io/badge/Demo-Live_Demo-success?style=for-the-badge)]()
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 </div>
@@ -32,7 +32,7 @@ Want to run the project on your own machine? It's simple.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/food-barcode-scanner.git
+   git clone https://github.com/Jit-Halder/NutriScan
    ```
 2. **Navigate into the directory:**
    ```bash
