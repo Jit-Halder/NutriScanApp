@@ -4,7 +4,7 @@
 
   **A modern, lightning-fast web app for scanning food barcodes to instantly reveal nutritional insights, Nutri-Score, and NOVA classifications.**
 
-  [![Live Demo](https://img.shields.io/badge/Demo-Live_Demo-success?style=for-the-badge)](https://your-username.github.io/food-barcode-scanner)
+  [![Live Demo](https://img.shields.io/badge/Demo-Live_Demo-success?style=for-the-badge)](https://github.com/Jit-Halder/NutriScan)
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 </div>
