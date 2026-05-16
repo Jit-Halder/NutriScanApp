@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriScan - Food Health Score</title>
+    <meta name="description" content="Scan any food product barcode to instantly check its health rating using Nutri-Score. Supports Indian and global products.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- html5-qrcode CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"></path>
+                    <path d="M10 2c1 .5 2 2 2 5"></path>
+                </svg>
+                <h1>NutriScan</h1>
+            </div>
+            <p class="subtitle">Scan any food barcode to instantly see its health score.</p>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg id="theme-icon-sun" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </button>
+        </header>
+
+        <main class="main-content">
+            <!-- Loading State -->
+            <div id="loading-view" class="view hidden">
+                <div class="glass-card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="skeleton skeleton-image"></div>
+                        <div style="flex: 1;">
+                            <div class="skeleton skeleton-text" style="width: 70%;"></div>
+                            <div class="skeleton skeleton-text" style="width: 40%; margin-bottom: 0;"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton skeleton-block"></div>
+                    <div class="skeleton skeleton-block" style="height: 120px;"></div>
+                    
+                    <div style="text-align: center; margin-top: 1.5rem;">
+                        <div class="loader"></div>
+                        <p class="loading-subtext" id="loading-status">Checking Open Food Facts...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 0: Input Choice -->
+            <div id="choice-view" class="view active">
+                <div class="glass-card choice-card">
+                    <div class="choice-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Frame Corners -->
+                            <path d="M4 8V6C4 4.895 4.895 4 6 4H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M16 4H18C19.105 4 20 4.895 20 6V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M4 16V18C4 19.105 4.895 20 6 20H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M16 20H18C19.105 20 20 19.105 20 18V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            
+                            <!-- Barcode Lines (varying widths) -->
+                            <rect x="6.5" y="8" width="1.5" height="8" fill="currentColor" rx="0.5"/>
+                            <rect x="9.5" y="8" width="1" height="8" fill="currentColor" rx="0.5"/>
+                            <rect x="12" y="8" width="2.5" height="8" fill="currentColor" rx="0.5"/>
+                            <rect x="16" y="8" width="1.5" height="8" fill="currentColor" rx="0.5"/>
+                            
+                            <!-- Laser Beam -->
+                            <rect x="2" y="11.5" width="20" height="1.5" fill="#ef476f" rx="0.75" style="filter: drop-shadow(0 0 3px rgba(239, 71, 111, 0.8));">
+                                <animate attributeName="y" values="7.5; 15; 7.5" dur="2s" repeatCount="indefinite" />
+                            </rect>
+                        </svg>
+                    </div>
+                    <h2>How would you like to scan?</h2>
+                    <p class="choice-subtitle">Choose an input method to look up a food product.</p>
+                    <div class="choice-buttons">
+                        <button id="btn-use-camera" class="btn btn-choice btn-choice-camera">
+                            <span class="choice-btn-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                            </span>
+                            <span class="choice-btn-text">
+                                <strong>Use Camera</strong>
+                                <small>Scan barcode with your device camera</small>
+                            </span>
+                        </button>
+                        <button id="btn-use-manual" class="btn btn-choice btn-choice-manual">
+                            <span class="choice-btn-icon">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <path d="M9 9h6M9 12h6M9 15h4"/>
+                                </svg>
+                            </span>
+                            <span class="choice-btn-text">
+                                <strong>Enter Manually</strong>
+                                <small>Type or paste a barcode number</small>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 1: Camera Scanner -->
+            <div id="scanner-view" class="view hidden">
+                <div class="glass-card scanner-card">
+                    <div class="card-title-row">
+                        <h2>Scan Barcode</h2>
+                        <button id="btn-back-from-camera" class="btn btn-back">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                            Back
+                        </button>
+                    </div>
+                    <div id="reader-container">
+                        <div id="reader"></div>
+                    </div>
+                    <p class="scan-hint">Point your camera at the barcode on the product packaging.</p>
+                </div>
+            </div>
+
+            <!-- View 1b: Manual Barcode Entry -->
+            <div id="manual-entry-view" class="view hidden">
+                <div class="glass-card scanner-card">
+                    <div class="card-title-row">
+                        <h2>Enter Barcode</h2>
+                        <button id="btn-back-from-manual" class="btn btn-back">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                            Back
+                        </button>
+                    </div>
+                    <p class="choice-subtitle">Type the barcode number found on the product packaging.</p>
+                    <div class="input-group manual-entry-group">
+                        <input type="text" id="manual-barcode" placeholder="e.g. 8901058810235" inputmode="numeric" autocomplete="off">
+                        <button id="btn-manual-search" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- View 2b: Manual Fallback (Not Found in any API) -->
+            <div id="manual-fallback-view" class="view hidden">
+                <div class="glass-card form-card">
+                    <div class="card-header">
+                        <div class="not-found-icon">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                <line x1="8" y1="11" x2="14" y2="11"/>
+                            </svg>
+                        </div>
+                        <h2>Product Not Found</h2>
+                        <p>We couldn't find this product in any of our databases (Open Food Facts & UPCitemdb). Enter its nutritional info per 100g below to calculate the score.</p>
+                    </div>
+                    <form id="manual-nutrition-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Calories (kcal)</label>
+                                <input type="number" id="input-energy" step="any" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Sugar (g)</label>
+                                <input type="number" id="input-sugar" step="any" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Sodium (mg)</label>
+                                <input type="number" id="input-sodium" step="any" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Saturated Fat (g)</label>
+                                <input type="number" id="input-satfat" step="any" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Protein (g)</label>
+                                <input type="number" id="input-protein" step="any" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Fiber (g)</label>
+                                <input type="number" id="input-fiber" step="any" required>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="btn-cancel-manual" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Calculate Score</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View 3: Results -->
+            <div id="results-view" class="view hidden">
+                <!-- Data Source Badge -->
+                <div id="data-source-banner" class="data-source-banner hidden">
+                    <div class="source-icon" id="source-icon"></div>
+                    <span id="source-text">Data from Open Food Facts</span>
+                </div>
+
+                <!-- Product Overview -->
+                <div class="glass-card product-card">
+                    <div class="product-header">
+                        <img id="product-image" src="" alt="Product image" class="hidden">
+                        <div class="product-titles">
+                            <h2 id="product-name">Product Name</h2>
+                            <p id="product-brand" class="brand">Brand Name</p>
+                            <div class="barcode-chip">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2M7 5h1M3 9v1M3 13h2M3 17v1M7 17h1M13 5h1M17 5h2M21 9v1M13 17h1M17 17h2M21 13v1"/><rect x="7" y="7" width="4" height="4" rx="1"/><rect x="13" y="13" width="4" height="4" rx="1"/></svg>
+                                <span id="result-barcode">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Official Scores Dashboard -->
+                <div class="glass-card score-card">
+                    <h3>Nutri-Score</h3>
+                    <div class="nutri-score-display">
+                        <div class="nutri-blocks">
+                            <div class="nutri-block" style="background-color: #038141">A</div>
+                            <div class="nutri-block" style="background-color: #85bb2f">B</div>
+                            <div class="nutri-block" style="background-color: #fecb02">C</div>
+                            <div class="nutri-block" style="background-color: #ee8100">D</div>
+                            <div class="nutri-block" style="background-color: #e63e11">E</div>
+                        </div>
+                        <div class="score-details">
+                            <div class="score-badge">
+                                <span id="nutri-letter">A</span>
+                            </div>
+                            <div class="score-text">
+                                <h4 id="nutri-desc">Loading...</h4>
+                                <p id="nutri-reason" class="reason-text">...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="nova-section" class="nova-display hidden">
+                        <h3>NOVA Classification</h3>
+                        <div class="score-details">
+                            <div class="score-badge nova-badge">
+                                <span id="nova-number">1</span>
+                            </div>
+                            <div class="score-text">
+                                <h4 id="nova-desc">Loading...</h4>
+                                <p id="nova-reason" class="reason-text">...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ingredients -->
+                <div class="glass-card ingredients-card hidden" id="ingredients-section">
+                    <h3>Ingredients</h3>
+                    <p id="ingredients-list" class="ingredients-text"></p>
+                </div>
+
+                <!-- Nutrition Table -->
+                <div class="glass-card nutrition-card">
+                    <h3>Nutrition Facts (per 100g)</h3>
+                    <table class="nutrition-table">
+                        <tbody>
+                            <tr><td>Energy</td><td id="nutri-energy">--</td></tr>
+                            <tr><td>Protein</td><td id="nutri-protein">--</td></tr>
+                            <tr><td>Carbohydrates</td><td id="nutri-carbs">--</td></tr>
+                            <tr><td class="sub-row">Sugars</td><td id="nutri-sugars">--</td></tr>
+                            <tr><td>Fat</td><td id="nutri-fat">--</td></tr>
+                            <tr><td class="sub-row">Saturated Fat</td><td id="nutri-satfat">--</td></tr>
+                            <tr><td>Fiber</td><td id="nutri-fiber">--</td></tr>
+                            <tr><td>Sodium</td><td id="nutri-sodium">--</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="actions">
+                    <button id="btn-scan-again" class="btn btn-primary btn-large">Scan Another Product</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/health-score.js"></script>
+    <script src="js/scanner.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
