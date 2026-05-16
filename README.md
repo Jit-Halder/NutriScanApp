@@ -4,7 +4,7 @@
 
   **A modern, lightning-fast web app for scanning food barcodes to instantly reveal nutritional insights, Nutri-Score, and NOVA classifications.**
 
-  [![Live Demo](https://img.shields.io/badge/Demo-Live_Demo-success?style=for-the-badge)]()
+  [![Live Demo](https://img.shields.io/badge/Demo-Live_Demo-success?style=for-the-badge)](https://jit-halder.github.io/NutriScan/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 </div>
@@ -36,7 +36,7 @@ Want to run the project on your own machine? It's simple.
    ```
 2. **Navigate into the directory:**
    ```bash
-   cd food-barcode-scanner
+   cd NutriScan
    ```
 3. **Open `index.html`** directly in your browser or run a local live server.
 
