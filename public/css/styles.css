@@ -939,6 +939,11 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 3px var(--input-focus-ring), var(--shadow-xs);
 }
 
+select option {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
 input::placeholder, textarea::placeholder {
     color: var(--text-muted);
 }
