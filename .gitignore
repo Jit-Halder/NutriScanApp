@@ -19,6 +19,10 @@ Thumbs.db
 # Environment variables
 .env
 
+# Database Backups
+*.sql
+nutriscan_backup.sql
+
 # Node modules
 node_modules/
 npm-debug.log
