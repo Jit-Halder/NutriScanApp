@@ -16,6 +16,9 @@ Thumbs.db
 *.sln
 *.sw?
 
+# Environment variables
+.env
+
 # Node modules
 node_modules/
 npm-debug.log

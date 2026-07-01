@@ -1,0 +1,44 @@
+{
+  "name": "food_barcode_scanner_project---version2",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">",
+  "main": "index.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Jit-Halder/NutriScan/issues"
+  },
+  "homepage": "https://github.com/Jit-Halder/NutriScan#readme",
+  "dependencies": {
+    "@prisma/client": "^7.8.0",
+    "axios": "^1.16.1",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
+    "mysql2": "^3.22.3",
+    "nodemailer": "^6.9.9",
+    "nutri-score": "^0.2.4",
+    "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "canvas": "^3.2.3",
+    "jsdom": "^29.1.1",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.8.0"
+  }
+}

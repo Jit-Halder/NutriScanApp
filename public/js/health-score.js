@@ -30,7 +30,7 @@ class HealthScoreCalculator {
         let novaVal = data.novaGroup || null;
         let isCalculated = false;
 
-        // If no Nutri-Score from API (like in manual entry), calculate it locally
+        // If no Nutri-Score from API (like in pure manual entry), calculate it locally as a final fallback
         if (!nutriGrade || !['a','b','c','d','e'].includes(nutriGrade)) {
             nutriGrade = this._calculateNutriScoreLocal(data.nutrition);
             isCalculated = true;
@@ -73,6 +73,15 @@ class HealthScoreCalculator {
 
         // Simplified final score
         const finalScore = badPoints - goodPoints;
+
+        // Corrected Nutri-Score thresholds based on FSA-NPS (Beverages vs Solid Foods simplified)
+        // Since beverages (like Pepsi) usually have lower overall points but should be rated poorly due to sugar,
+        // we adjust the thresholds. If it's pure sugar water, it should definitely be an E.
+        
+        // Heuristic: If it has zero protein/fiber and high sugar, it's likely a soda/candy.
+        if (n.sugars > 10 && goodPoints === 0) {
+            return 'e'; // Force E for high sugar, empty calorie foods
+        }
 
         if (finalScore <= -1) return 'a';
         if (finalScore <= 2) return 'b';
