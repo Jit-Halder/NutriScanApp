@@ -46,26 +46,38 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Authenticate database connection, sync tables, and start server
-sequelize.authenticate()
-    .then(() => {
+// Smart database startup: check if tables exist before syncing
+async function startServer() {
+    try {
+        await sequelize.authenticate();
         console.log('Database connected successfully');
-        // Sync all models - creates tables if they don't exist
-        // Removed { alter: true } to prevent duplicate foreign key errors on MySQL
-        return sequelize.sync();
-    })
-    .then(() => {
-        console.log('Database tables synced successfully');
+
+        // Check if tables already exist by querying the Users table
+        let tablesExist = false;
+        try {
+            await sequelize.query('SELECT 1 FROM Users LIMIT 1');
+            tablesExist = true;
+            console.log('Database tables already exist - skipping sync');
+        } catch (e) {
+            console.log('Tables not found - will create them now');
+        }
+
+        // Only sync (create tables) if they don't already exist
+        if (!tablesExist) {
+            await sequelize.sync();
+            console.log('Database tables created successfully');
+        }
+
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT}`);
         });
-    })
-    .catch((err) => {
-        console.error('Failed to connect to database:', err);
+    } catch (err) {
+        console.error('Failed to connect to database:', err.message);
         // Start server anyway so Render doesn't mark it as crashed
-        // API calls will fail gracefully with DB errors
-        console.log('Starting server without database connection...');
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT} (WITHOUT database)`);
         });
-    });
+    }
+}
+
+startServer();
