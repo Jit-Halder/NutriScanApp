@@ -42,4 +42,9 @@ sequelize.sync() // Removed { alter: true } to prevent duplicate keys in MySQL
     })
     .catch((err) => {
         console.error('Failed to sync database:', err);
+        // Continue starting the server even if sync fails, 
+        // since the database is already populated from the backup
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT} (Database sync bypassed)`);
+        });
     });
