@@ -257,7 +257,7 @@ exports.deleteAccount = async (req, res) => {
         }
 
         // Manually delete related records first to ensure no foreign key constraint errors
-        const { UserProfile, ProductScanHistory, SavedProduct, ProductSubmission, NutritionAnalysisResult, UserFeedback } = require('../models');
+        const { ProductScanHistory, SavedProduct, ProductSubmission, NutritionAnalysisResult, UserFeedback } = require('../models');
         
         await UserProfile.destroy({ where: { userId } });
         await ProductScanHistory.destroy({ where: { userId } });
