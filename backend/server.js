@@ -32,19 +32,14 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Sync database and start server
-sequelize.sync() // Removed { alter: true } to prevent duplicate keys in MySQL
+// Authenticate database connection and start server
+sequelize.authenticate()
     .then(() => {
-        console.log('Database synced successfully');
+        console.log('Database connected successfully');
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });
     })
     .catch((err) => {
-        console.error('Failed to sync database:', err);
-        // Continue starting the server even if sync fails, 
-        // since the database is already populated from the backup
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT} (Database sync bypassed)`);
-        });
+        console.error('Failed to connect to database:', err);
     });
