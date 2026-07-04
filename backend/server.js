@@ -46,27 +46,45 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Smart database startup: check if tables exist before syncing
+// Import all models for individual sync
+const { User, UserProfile, ProductScanHistory, SavedProduct, ProductSubmission, NutritionAnalysisResult, UserFeedback } = require('./models');
+
+// Sync each model individually - skip ones that already exist (avoids FK duplicate errors)
+async function syncModels() {
+    const models = [
+        { name: 'Users', model: User },
+        { name: 'UserProfiles', model: UserProfile },
+        { name: 'ProductScanHistories', model: ProductScanHistory },
+        { name: 'SavedProducts', model: SavedProduct },
+        { name: 'ProductSubmissions', model: ProductSubmission },
+        { name: 'NutritionAnalysisResults', model: NutritionAnalysisResult },
+        { name: 'UserFeedbacks', model: UserFeedback }
+    ];
+
+    for (const { name, model } of models) {
+        try {
+            // Check if table already exists
+            await sequelize.query(`SELECT 1 FROM \`${name}\` LIMIT 1`);
+            console.log(`  ✓ ${name} - already exists`);
+        } catch (e) {
+            // Table doesn't exist, create it
+            try {
+                await model.sync();
+                console.log(`  ✓ ${name} - created`);
+            } catch (syncErr) {
+                console.error(`  ✗ ${name} - failed to create: ${syncErr.message}`);
+            }
+        }
+    }
+}
+
 async function startServer() {
     try {
         await sequelize.authenticate();
         console.log('Database connected successfully');
-
-        // Check if tables already exist by querying the Users table
-        let tablesExist = false;
-        try {
-            await sequelize.query('SELECT 1 FROM Users LIMIT 1');
-            tablesExist = true;
-            console.log('Database tables already exist - skipping sync');
-        } catch (e) {
-            console.log('Tables not found - will create them now');
-        }
-
-        // Only sync (create tables) if they don't already exist
-        if (!tablesExist) {
-            await sequelize.sync();
-            console.log('Database tables created successfully');
-        }
+        console.log('Syncing database tables...');
+        await syncModels();
+        console.log('Database tables ready');
 
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT}`);
