@@ -51,8 +51,8 @@ sequelize.authenticate()
     .then(() => {
         console.log('Database connected successfully');
         // Sync all models - creates tables if they don't exist
-        // alter: true will adjust columns if model definitions changed
-        return sequelize.sync({ alter: true });
+        // Removed { alter: true } to prevent duplicate foreign key errors on MySQL
+        return sequelize.sync();
     })
     .then(() => {
         console.log('Database tables synced successfully');
