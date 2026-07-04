@@ -7,46 +7,39 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
 };
 
+const axios = require('axios');
+
 const sendOTPEmail = async (email, otp) => {
     // For development convenience, always log the OTP to the console
     console.log(`\n=========================================`);
     console.log(`[DEV] OTP for ${email} is: ${otp}`);
     console.log(`=========================================\n`);
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_USER === 'your.actual.email@gmail.com') {
-        console.log('Email credentials not configured in .env. Skipping actual email delivery.');
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    const senderEmail = process.env.EMAIL_USER || 'nutriscanwebapp@gmail.com';
+
+    if (!brevoApiKey) {
+        console.log('BREVO_API_KEY not configured in .env. Skipping actual email delivery.');
         return; // Skip sending email if not configured
     }
 
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true, // Use SSL
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        },
-        tls: {
-            rejectUnauthorized: false // Helps with local network certificate issues
-        },
-        connectionTimeout: 5000, // 5 seconds
-        greetingTimeout: 5000,
-        socketTimeout: 5000
-    });
-
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'NutriScan - Email Verification OTP',
-        text: `Your OTP for email verification is: ${otp}. It is valid for 10 minutes.`
-    };
-
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`OTP email sent successfully to ${email}`);
+        await axios.post('https://api.brevo.com/v3/smtp/email', {
+            sender: { name: 'NutriScan', email: senderEmail },
+            to: [{ email: email }],
+            subject: 'NutriScan - Email Verification OTP',
+            htmlContent: `<html><body><p>Your OTP for NutriScan email verification is: <strong>${otp}</strong></p><p>It is valid for 10 minutes.</p></body></html>`
+        }, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': brevoApiKey,
+                'content-type': 'application/json'
+            }
+        });
+        console.log(`OTP email sent successfully to ${email} via Brevo`);
     } catch (error) {
-        console.error('Error sending email:', error);
-        throw new Error('Failed to send OTP email. Please check your email credentials.');
+        console.error('Error sending email via Brevo:', error.response ? error.response.data : error.message);
+        throw new Error('Failed to send OTP email via Brevo API.');
     }
 };
 
