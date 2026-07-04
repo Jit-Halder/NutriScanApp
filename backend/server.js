@@ -30,9 +30,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Catch-all: serve index.html for any non-API route (SPA support)
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     if (!req.path.startsWith('/api')) {
         res.sendFile(path.join(__dirname, '../public/index.html'));
+    } else {
+        res.status(404).json({ message: 'API endpoint not found' });
     }
 });
 
