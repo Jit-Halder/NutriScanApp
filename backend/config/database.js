@@ -10,6 +10,12 @@ const sequelize = new Sequelize(
         port: process.env.DB_PORT || 3306,
         dialect: 'mysql',
         logging: false,
+        dialectOptions: {
+            ssl: process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud') ? {
+                require: true,
+                rejectUnauthorized: false
+            } : false
+        }
     }
 );
 
