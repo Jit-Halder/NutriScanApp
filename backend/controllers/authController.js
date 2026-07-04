@@ -18,7 +18,6 @@ const sendOTPEmail = async (email, otp) => {
         return; // Skip sending email if not configured
     }
 
-    // Use an explicit configuration that often bypasses strict local firewalls
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 465,
@@ -29,7 +28,10 @@ const sendOTPEmail = async (email, otp) => {
         },
         tls: {
             rejectUnauthorized: false // Helps with local network certificate issues
-        }
+        },
+        connectionTimeout: 5000, // 5 seconds
+        greetingTimeout: 5000,
+        socketTimeout: 5000
     });
 
     const mailOptions = {
