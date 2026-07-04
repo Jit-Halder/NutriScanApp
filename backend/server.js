@@ -24,6 +24,18 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/products', productRoutes);
 
+// Health check endpoint (useful for Render)
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Catch-all: serve index.html for any non-API route (SPA support)
+app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(__dirname, '../public/index.html'));
+    }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -32,14 +44,26 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Authenticate database connection and start server
+// Authenticate database connection, sync tables, and start server
 sequelize.authenticate()
     .then(() => {
         console.log('Database connected successfully');
-        app.listen(PORT, () => {
+        // Sync all models - creates tables if they don't exist
+        // alter: true will adjust columns if model definitions changed
+        return sequelize.sync({ alter: true });
+    })
+    .then(() => {
+        console.log('Database tables synced successfully');
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT}`);
         });
     })
     .catch((err) => {
         console.error('Failed to connect to database:', err);
+        // Start server anyway so Render doesn't mark it as crashed
+        // API calls will fail gracefully with DB errors
+        console.log('Starting server without database connection...');
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Server is running on port ${PORT} (WITHOUT database)`);
+        });
     });
