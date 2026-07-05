@@ -656,6 +656,16 @@ a:hover { color: var(--primary-hover); }
     display: none !important;
 }
 
+.hidden-desktop {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hidden-desktop {
+        display: flex;
+    }
+}
+
 /* Staggered children animation */
 .view.active .stagger-item {
     opacity: 0;
@@ -1976,7 +1986,8 @@ input::placeholder, textarea::placeholder {
     width: 100%;
 }
 
-.dashboard.auth-mode .mobile-menu-btn {
+.dashboard.auth-mode .mobile-menu-btn,
+.dashboard.auth-mode .mobile-header {
     display: none !important;
 }
 
@@ -2032,11 +2043,21 @@ input::placeholder, textarea::placeholder {
    ================================================================ */
 @media (max-width: 768px) {
     .dashboard {
-        grid-template-columns: var(--sidebar-collapsed) 1fr;
+        grid-template-columns: 1fr;
+        grid-template-areas: "content";
     }
 
     .sidebar {
-        width: var(--sidebar-collapsed);
+        transform: translateX(-100%);
+        width: var(--sidebar-width);
+        position: fixed;
+        z-index: 1000;
+        border-right: none;
+        box-shadow: var(--shadow-xl);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
     }
 
     .sidebar-logo-text,
@@ -2067,6 +2088,38 @@ input::placeholder, textarea::placeholder {
 
     .sidebar-overlay {
         display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 900;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        animation: fadeIn 0.3s ease forwards;
+    }
+
+    .mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-3) var(--space-4);
+        margin: calc(var(--space-5) * -1) calc(var(--space-4) * -1) var(--space-5) calc(var(--space-4) * -1);
+        background: var(--bg-surface);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-primary);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    .mobile-logo-text {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--primary);
     }
 
     .mobile-menu-btn {
