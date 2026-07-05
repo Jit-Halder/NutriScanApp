@@ -884,7 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         'Content-Type': 'application/json',
                                         'Authorization': `Bearer ${authToken}` 
                                     },
-                                    body: JSON.stringify({ barcode: data.product.barcode })
+                                    body: JSON.stringify({ barcode: data.product.barcode, productName: data.product.name })
                                 });
                                 
                                 if (saveRes.ok) {
@@ -904,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         'Content-Type': 'application/json',
                                         'Authorization': `Bearer ${authToken}` 
                                     },
-                                    body: JSON.stringify({ barcode: data.product.barcode })
+                                    body: JSON.stringify({ barcode: data.product.barcode, productName: data.product.name })
                                 });
                                 
                                 if (unsaveRes.ok) {
