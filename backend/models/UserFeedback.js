@@ -24,6 +24,7 @@ const UserFeedback = sequelize.define('UserFeedback', {
         }
     }
 }, {
+    tableName: 'userfeedbacks',
     timestamps: true,
     updatedAt: false,
 });

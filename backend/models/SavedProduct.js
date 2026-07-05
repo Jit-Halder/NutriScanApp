@@ -20,6 +20,7 @@ const SavedProduct = sequelize.define('SavedProduct', {
         allowNull: true,
     }
 }, {
+    tableName: 'savedproducts',
     timestamps: true,
     updatedAt: false,
 });

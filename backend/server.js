@@ -46,51 +46,43 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Import all models for individual sync
-const { User, UserProfile, ProductScanHistory, SavedProduct, ProductSubmission, NutritionAnalysisResult, UserFeedback } = require('./models');
-
-// Sync each model individually - skip ones that already exist (avoids FK duplicate errors)
-async function syncModels() {
-    const models = [
-        { name: 'Users', model: User },
-        { name: 'UserProfiles', model: UserProfile },
-        { name: 'ProductScanHistories', model: ProductScanHistory },
-        { name: 'SavedProducts', model: SavedProduct },
-        { name: 'ProductSubmissions', model: ProductSubmission },
-        { name: 'NutritionAnalysisResults', model: NutritionAnalysisResult },
-        { name: 'UserFeedbacks', model: UserFeedback }
-    ];
-
-    for (const { name, model } of models) {
-        try {
-            // Check if table already exists
-            await sequelize.query(`SELECT 1 FROM \`${name}\` LIMIT 1`);
-            console.log(`  ✓ ${name} - already exists`);
-        } catch (e) {
-            // Table doesn't exist, create it
-            try {
-                await model.sync();
-                console.log(`  ✓ ${name} - created`);
-            } catch (syncErr) {
-                console.error(`  ✗ ${name} - failed to create: ${syncErr.message}`);
-            }
-        }
-    }
-}
-
 async function startServer() {
     try {
         await sequelize.authenticate();
         console.log('Database connected successfully');
+
+        // Step 1: Drop all foreign key constraints to prevent ER_FK_DUP_NAME errors
+        // This is necessary because Aiven MySQL can have orphaned FK constraint names
+        console.log('Cleaning up foreign key constraints...');
+        try {
+            const [constraints] = await sequelize.query(`
+                SELECT CONSTRAINT_NAME, TABLE_NAME 
+                FROM information_schema.TABLE_CONSTRAINTS 
+                WHERE CONSTRAINT_TYPE = 'FOREIGN KEY' 
+                AND TABLE_SCHEMA = DATABASE()
+            `);
+            for (const { CONSTRAINT_NAME, TABLE_NAME } of constraints) {
+                try {
+                    await sequelize.query(`ALTER TABLE \`${TABLE_NAME}\` DROP FOREIGN KEY \`${CONSTRAINT_NAME}\``);
+                    console.log(`  Dropped FK: ${CONSTRAINT_NAME} from ${TABLE_NAME}`);
+                } catch (e) {
+                    // Ignore errors if table/constraint doesn't exist
+                }
+            }
+        } catch (e) {
+            console.log('  No FK constraints to clean up');
+        }
+
+        // Step 2: Now sync all models - this will recreate tables and FK constraints cleanly
         console.log('Syncing database tables...');
-        await syncModels();
-        console.log('Database tables ready');
+        await sequelize.sync();
+        console.log('Database tables synced successfully');
 
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT}`);
         });
     } catch (err) {
-        console.error('Failed to connect to database:', err.message);
+        console.error('Failed to start server with database:', err.message);
         // Start server anyway so Render doesn't mark it as crashed
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server is running on port ${PORT} (WITHOUT database)`);

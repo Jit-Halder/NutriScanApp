@@ -20,6 +20,7 @@ const ProductScanHistory = sequelize.define('ProductScanHistory', {
         allowNull: true,
     }
 }, {
+    tableName: 'productscanhistories',
     timestamps: true,
     updatedAt: false, // We only care about when it was scanned (createdAt)
 });

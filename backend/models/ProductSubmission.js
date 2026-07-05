@@ -44,6 +44,7 @@ const ProductSubmission = sequelize.define('ProductSubmission', {
         defaultValue: 'pending',
     }
 }, {
+    tableName: 'productsubmissions',
     timestamps: true,
 });
 

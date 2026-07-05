@@ -32,6 +32,7 @@ const NutritionAnalysisResult = sequelize.define('NutritionAnalysisResult', {
         allowNull: true,
     }
 }, {
+    tableName: 'nutritionanalysisresults',
     timestamps: true,
     updatedAt: false,
 });
