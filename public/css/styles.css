@@ -2138,9 +2138,6 @@ input::placeholder, textarea::placeholder {
         padding: var(--space-5) var(--space-4);
     }
 
-    .app-footer {
-        /* No margin-left needed */
-    }
 
     /* Layout tweaks */
     .glass-card {
