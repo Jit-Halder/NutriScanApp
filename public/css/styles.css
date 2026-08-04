@@ -2231,6 +2231,47 @@ input::placeholder, textarea::placeholder {
         gap: var(--space-4);
     }
 
+    /* Scanner — fix camera box alignment on mobile */
+    #reader-container {
+        aspect-ratio: auto;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #reader {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden;
+        border-radius: var(--radius-md);
+    }
+
+    /* Constrain the html5-qrcode internal video and scanning region */
+    #reader video {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        object-fit: cover;
+    }
+
+    #reader img {
+        max-width: 100% !important;
+    }
+
+    /* The scanning region container created by html5-qrcode */
+    #reader > div {
+        max-width: 100% !important;
+        overflow: hidden;
+    }
+
+    /* Ensure the qr-shaded-region (scanning box overlay) stays centered */
+    #reader canvas {
+        max-width: 100% !important;
+    }
+
+    .scanner-card {
+        padding: var(--space-4);
+    }
+
     /* Toast */
     .toast-container {
         right: var(--space-4);

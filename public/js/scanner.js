@@ -17,10 +17,14 @@ class BarcodeScanner {
         if (this.isScanning) return;
 
         // Configuration for html5-qrcode
+        const readerEl = document.getElementById(this.containerId);
+        const containerWidth = readerEl ? readerEl.clientWidth : 300;
+        const qrboxWidth = Math.min(250, Math.floor(containerWidth * 0.8));
+        const qrboxHeight = Math.min(150, Math.floor(qrboxWidth * 0.6));
+
         const config = {
             fps: 10,
-            qrbox: { width: 250, height: 150 },
-            aspectRatio: 1.0,
+            qrbox: { width: qrboxWidth, height: qrboxHeight },
             formatsToSupport: [
                 Html5QrcodeSupportedFormats.EAN_13,
                 Html5QrcodeSupportedFormats.EAN_8,
