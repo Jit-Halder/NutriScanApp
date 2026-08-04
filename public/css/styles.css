@@ -1980,7 +1980,9 @@ input::placeholder, textarea::placeholder {
 }
 
 .dashboard.auth-mode #auth-view,
-.dashboard.auth-mode #otp-view {
+.dashboard.auth-mode #otp-view,
+.dashboard.auth-mode #forgot-password-view,
+.dashboard.auth-mode #reset-password-view {
     margin: 0 auto !important;
     max-width: 480px;
     width: 100%;

@@ -43,6 +43,39 @@ const sendOTPEmail = async (email, otp) => {
     }
 };
 
+const sendPasswordResetEmail = async (email, otp) => {
+    console.log(`\n=========================================`);
+    console.log(`[DEV] Password Reset OTP for ${email} is: ${otp}`);
+    console.log(`=========================================\n`);
+
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    const senderEmail = process.env.EMAIL_USER || 'nutriscanwebapp@gmail.com';
+
+    if (!brevoApiKey) {
+        console.log('BREVO_API_KEY not configured in .env. Skipping actual email delivery.');
+        return;
+    }
+
+    try {
+        await axios.post('https://api.brevo.com/v3/smtp/email', {
+            sender: { name: 'NutriScan', email: senderEmail },
+            to: [{ email: email }],
+            subject: 'NutriScan - Password Reset OTP',
+            htmlContent: `<html><body><p>You requested a password reset for your NutriScan account.</p><p>Your OTP is: <strong>${otp}</strong></p><p>It is valid for 10 minutes. If you did not request this, please ignore this email.</p></body></html>`
+        }, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': brevoApiKey,
+                'content-type': 'application/json'
+            }
+        });
+        console.log(`Password reset email sent successfully to ${email} via Brevo`);
+    } catch (error) {
+        console.error('Error sending password reset email via Brevo:', error.response ? error.response.data : error.message);
+        throw new Error('Failed to send password reset email via Brevo API.');
+    }
+};
+
 exports.register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -272,6 +305,86 @@ exports.deleteAccount = async (req, res) => {
         res.json({ message: 'Account deleted successfully' });
     } catch (error) {
         console.error('Delete account error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+};
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        const user = await User.findOne({ where: { email } });
+
+        if (!user) {
+            // Don't reveal whether the email exists for security
+            return res.json({ message: 'If an account with that email exists, a reset code has been sent.' });
+        }
+
+        if (!user.isVerified) {
+            return res.status(400).json({ message: 'This account is not verified yet. Please register again.' });
+        }
+
+        const otp = generateOTP();
+        const otpExpires = new Date(Date.now() + 10 * 60000); // 10 minutes
+
+        user.otp = otp;
+        user.otpExpires = otpExpires;
+        await user.save();
+
+        try {
+            await sendPasswordResetEmail(email, otp);
+            res.json({ message: 'If an account with that email exists, a reset code has been sent.' });
+        } catch (emailError) {
+            console.error('Password reset email sending failed:', emailError);
+            res.json({ 
+                message: 'Reset code generated. Email delivery failed, but you can find your OTP in the server logs (Dev Mode).',
+                emailError: true 
+            });
+        }
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: 'Email, OTP, and new password are required' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        }
+
+        const user = await User.findOne({ where: { email } });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid request' });
+        }
+
+        if (user.otp !== otp || user.otpExpires < new Date()) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        user.password = hashedPassword;
+        user.otp = null;
+        user.otpExpires = null;
+        await user.save();
+
+        res.json({ message: 'Password reset successfully. You can now login with your new password.' });
+    } catch (error) {
+        console.error('Reset password error:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };

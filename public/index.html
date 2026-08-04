@@ -127,6 +127,9 @@
                                     <i class="ph ph-eye" style="font-size: 1.15rem;"></i>
                                 </button>
                             </div>
+                            <div class="flex justify-end mt-1" id="forgot-password-container">
+                                <a href="#" id="link-forgot-password" style="font-size: 0.85rem; color: var(--primary); font-weight: 500;">Forgot password?</a>
+                            </div>
                         </div>
                         <div class="form-group" id="auth-name-group" style="display:none;">
                             <label for="auth-name">Name</label>
@@ -167,6 +170,69 @@
                         <div class="text-center mt-2">
                             <a href="#" id="resend-otp-btn" style="color: var(--primary); font-weight: 500;">Resend OTP</a>
                             <span id="resend-otp-timer" class="hidden" style="color: var(--text-muted); margin-left: 0.5rem;"></span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ─────────────────────────────────────────────────
+                 FORGOT PASSWORD VIEW
+                 ───────────────────────────────────────────────── -->
+            <div id="forgot-password-view" class="view hidden">
+                <div class="glass-card auth-card">
+                    <div class="auth-header">
+                        <div class="auth-header-icon" style="background: rgba(234, 179, 8, 0.12);">
+                            <i class="ph-duotone ph-key-hole" style="color: var(--score-c);"></i>
+                        </div>
+                        <h2>Reset Password</h2>
+                        <p>Enter your email to receive a 6-digit password reset code.</p>
+                    </div>
+                    <form id="forgot-password-form" class="flex flex-col gap-4">
+                        <div class="form-group">
+                            <label for="forgot-email">Email Address</label>
+                            <div class="input-icon-wrapper">
+                                <input type="email" id="forgot-email" required placeholder="Enter registered email">
+                                <i class="ph ph-envelope-simple"></i>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4 mt-4">
+                            <button type="submit" id="btn-submit-forgot" class="btn btn-primary btn-large">Send Reset Code</button>
+                            <button type="button" id="btn-forgot-back-to-login" class="btn btn-ghost">Back to Login</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ─────────────────────────────────────────────────
+                 RESET PASSWORD VIEW
+                 ───────────────────────────────────────────────── -->
+            <div id="reset-password-view" class="view hidden">
+                <div class="glass-card auth-card">
+                    <div class="auth-header">
+                        <div class="auth-header-icon" style="background: rgba(16, 185, 129, 0.12);">
+                            <i class="ph-duotone ph-lock-key-open" style="color: var(--primary-500);"></i>
+                        </div>
+                        <h2>Set New Password</h2>
+                        <p>Enter the reset code sent to your email and your new password.</p>
+                    </div>
+                    <form id="reset-password-form" class="flex flex-col gap-4">
+                        <div class="form-group">
+                            <label for="reset-otp-code">Reset OTP Code</label>
+                            <input type="text" id="reset-otp-code" required placeholder="Enter OTP" maxlength="6" style="text-align: center; letter-spacing: 0.5rem; font-size: 1.2rem; font-weight: 700; font-family: var(--font-mono);">
+                        </div>
+                        <div class="form-group">
+                            <label for="reset-new-password">New Password</label>
+                            <div class="input-icon-wrapper" style="position: relative;">
+                                <input type="password" id="reset-new-password" required placeholder="At least 6 characters" minlength="6" style="padding-right: 3rem;">
+                                <i class="ph ph-lock-key"></i>
+                                <button type="button" id="toggle-reset-password" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; z-index: 2;">
+                                    <i class="ph ph-eye" style="font-size: 1.15rem;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4 mt-4">
+                            <button type="submit" id="btn-submit-reset" class="btn btn-primary btn-large">Update Password</button>
+                            <button type="button" id="btn-reset-back-to-login" class="btn btn-ghost">Back to Login</button>
                         </div>
                     </form>
                 </div>

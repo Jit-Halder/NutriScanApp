@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const authView = document.getElementById('auth-view');
     const otpView = document.getElementById('otp-view');
+    const forgotPasswordView = document.getElementById('forgot-password-view');
+    const resetPasswordView = document.getElementById('reset-password-view');
     const profileView = document.getElementById('profile-view');
     const choiceView = document.getElementById('choice-view');
     const scannerView = document.getElementById('scanner-view');
@@ -41,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsView = document.getElementById('results-view');
     const historyView = document.getElementById('history-view');
 
-    const allViews = [authView, otpView, profileView, choiceView, scannerView, manualEntryView, loadingView, manualFallbackView, resultsView, historyView];
+    const allViews = [authView, otpView, forgotPasswordView, resetPasswordView, profileView, choiceView, scannerView, manualEntryView, loadingView, manualFallbackView, resultsView, historyView];
 
     // Nav Buttons (Sidebar)
     const navScan = document.getElementById('nav-scan');
@@ -71,11 +73,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const authNameGroup = document.getElementById('auth-name-group');
     const btnToggleAuth = document.getElementById('btn-toggle-auth');
     const btnSubmitAuth = document.getElementById('btn-submit-auth');
-    
+    const linkForgotPassword = document.getElementById('link-forgot-password');
+    const forgotPasswordContainer = document.getElementById('forgot-password-container');
+
     // OTP Form
     const otpForm = document.getElementById('otp-form');
     const otpCode = document.getElementById('otp-code');
     const btnBackToLogin = document.getElementById('btn-back-to-login');
+
+    // Forgot Password Form
+    const forgotPasswordForm = document.getElementById('forgot-password-form');
+    const forgotEmail = document.getElementById('forgot-email');
+    const btnSubmitForgot = document.getElementById('btn-submit-forgot');
+    const btnForgotBackToLogin = document.getElementById('btn-forgot-back-to-login');
+
+    // Reset Password Form
+    const resetPasswordForm = document.getElementById('reset-password-form');
+    const resetOtpCode = document.getElementById('reset-otp-code');
+    const resetNewPassword = document.getElementById('reset-new-password');
+    const toggleResetPassword = document.getElementById('toggle-reset-password');
+    const btnSubmitReset = document.getElementById('btn-submit-reset');
+    const btnResetBackToLogin = document.getElementById('btn-reset-back-to-login');
 
     // Profile Form
     const profileForm = document.getElementById('profile-form');
@@ -208,9 +226,123 @@ document.addEventListener('DOMContentLoaded', () => {
         btnToggleAuth.addEventListener('click', () => {
             isRegistering = !isRegistering;
             authNameGroup.style.display = isRegistering ? 'block' : 'none';
+            if (forgotPasswordContainer) forgotPasswordContainer.style.display = isRegistering ? 'none' : 'flex';
             btnToggleAuth.textContent = isRegistering ? 'Already have an account? Login here' : 'Don\'t have an account? Register here';
             btnSubmitAuth.textContent = isRegistering ? 'Register' : 'Login';
         });
+
+        if (linkForgotPassword) {
+            linkForgotPassword.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (authEmail.value && forgotEmail) {
+                    forgotEmail.value = authEmail.value;
+                }
+                showView(forgotPasswordView);
+            });
+        }
+
+        if (toggleResetPassword && resetNewPassword) {
+            toggleResetPassword.addEventListener('click', () => {
+                const type = resetNewPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                resetNewPassword.setAttribute('type', type);
+                toggleResetPassword.innerHTML = type === 'text' ? `<i class="ph ph-eye-slash" style="font-size: 1.15rem;"></i>` : `<i class="ph ph-eye" style="font-size: 1.15rem;"></i>`;
+            });
+        }
+
+        if (forgotPasswordForm) {
+            forgotPasswordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = forgotEmail.value.trim();
+                if (!email) {
+                    window.showToast('Please enter your email', 'error');
+                    return;
+                }
+
+                const originalText = btnSubmitForgot.textContent;
+                btnSubmitForgot.disabled = true;
+                btnSubmitForgot.textContent = 'Sending...';
+
+                try {
+                    const res = await fetch('/api/auth/forgot-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        window.showToast(data.message || 'Reset code sent!', 'success');
+                        showView(resetPasswordView);
+                    } else {
+                        window.showToast(data.message || 'Failed to send reset code', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    window.showToast('Network error', 'error');
+                } finally {
+                    btnSubmitForgot.disabled = false;
+                    btnSubmitForgot.textContent = originalText;
+                }
+            });
+        }
+
+        if (resetPasswordForm) {
+            resetPasswordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = forgotEmail.value.trim() || authEmail.value.trim();
+                const otp = resetOtpCode.value.trim();
+                const newPassword = resetNewPassword.value;
+
+                if (!email) {
+                    window.showToast('Email is required', 'error');
+                    return;
+                }
+                if (!otp) {
+                    window.showToast('Reset OTP code is required', 'error');
+                    return;
+                }
+                if (!newPassword || newPassword.length < 6) {
+                    window.showToast('New password must be at least 6 characters', 'error');
+                    return;
+                }
+
+                const originalText = btnSubmitReset.textContent;
+                btnSubmitReset.disabled = true;
+                btnSubmitReset.textContent = 'Updating...';
+
+                try {
+                    const res = await fetch('/api/auth/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, otp, newPassword })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        window.showToast('Password reset successfully! Please login.', 'success');
+                        resetOtpCode.value = '';
+                        resetNewPassword.value = '';
+                        authPassword.value = '';
+                        if (email) authEmail.value = email;
+                        showView(authView);
+                    } else {
+                        window.showToast(data.message || 'Failed to reset password', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    window.showToast('Network error', 'error');
+                } finally {
+                    btnSubmitReset.disabled = false;
+                    btnSubmitReset.textContent = originalText;
+                }
+            });
+        }
+
+        if (btnForgotBackToLogin) {
+            btnForgotBackToLogin.addEventListener('click', () => showView(authView));
+        }
+
+        if (btnResetBackToLogin) {
+            btnResetBackToLogin.addEventListener('click', () => showView(authView));
+        }
 
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -801,7 +933,7 @@ document.addEventListener('DOMContentLoaded', () => {
             matchedNav = navHistory;
             breadcrumbText = 'Activity';
             if (typeof loadHistory === 'function') loadHistory();
-        } else if (viewElement === authView || viewElement === otpView) {
+        } else if (viewElement === authView || viewElement === otpView || viewElement === forgotPasswordView || viewElement === resetPasswordView) {
             matchedNav = navAuth;
             breadcrumbText = 'Login / Register';
         } else if (viewElement === profileView) {
