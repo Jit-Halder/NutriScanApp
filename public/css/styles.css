@@ -750,8 +750,14 @@ a:hover { color: var(--primary-hover); }
 .auth-card .auth-header-icon {
     width: 48px;
     height: 48px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.5rem;
     margin: 0 auto var(--space-3);
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary);
 }
 .auth-card h2 {
     font-size: 1.25rem;
