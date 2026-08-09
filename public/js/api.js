@@ -159,7 +159,7 @@ class FoodAPI {
 // ─── Backend API Communication ──────────────────────────────────────
 class BackendAPI {
     static get BASE_URL() {
-        return 'http://localhost:3000/api';
+        return '/api';
     }
 
     static async resendOTP(email) {
