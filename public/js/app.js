@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarUserEmail = document.getElementById('sidebar-user-email');
     const sidebarAvatar = document.getElementById('sidebar-avatar');
 
-    const navItems = [navScan, navHistory, navAuth, navProfile];
+    const navItems = [navScan, navHistory, navAuth];
 
     // Sidebar Toggle
     const sidebar = document.getElementById('sidebar');
@@ -498,6 +498,13 @@ document.addEventListener('DOMContentLoaded', () => {
             showView(authView);
         });
 
+        // Clicking the user info widget at the bottom of sidebar opens Profile
+        if (sidebarUserSection) {
+            sidebarUserSection.addEventListener('click', () => {
+                showView(profileView);
+            });
+        }
+
         navLogout.addEventListener('click', (e) => {
             e.preventDefault();
             logoutModal.classList.remove('hidden');
@@ -822,7 +829,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('.dashboard').classList.remove('auth-mode');
             navScan.classList.remove('hidden');
             navAuth.classList.add('hidden');
-            navProfile.classList.remove('hidden');
             navHistory.classList.remove('hidden');
             navLogout.classList.remove('hidden');
             sidebarUserSection.classList.remove('hidden');
@@ -849,7 +855,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('.dashboard').classList.add('auth-mode');
             navScan.classList.add('hidden');
             navAuth.classList.remove('hidden');
-            navProfile.classList.add('hidden');
             navHistory.classList.add('hidden');
             navLogout.classList.add('hidden');
             sidebarUserSection.classList.add('hidden');

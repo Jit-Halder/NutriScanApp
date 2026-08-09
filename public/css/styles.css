@@ -255,6 +255,10 @@ a:hover { color: var(--primary-hover); }
     display: none;
 }
 
+.dashboard.is-collapsed .sidebar-user-arrow {
+    display: none;
+}
+
 .dashboard.is-collapsed .sidebar-logo {
     justify-content: center;
     padding: 0;
@@ -448,11 +452,36 @@ a:hover { color: var(--primary-hover); }
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-md);
-    transition: background var(--duration-fast);
+    transition: background var(--duration-fast), color var(--duration-fast);
+    cursor: pointer;
+    width: 100%;
+    /* Reset button styles */
+    background: transparent;
+    border: none;
+    font-family: var(--font-sans);
+    text-align: left;
+    margin-top: var(--space-2);
 }
 
 .sidebar-user:hover {
-    background: var(--sidebar-hover);
+    background: var(--sidebar-active);
+}
+
+.sidebar-user:hover .sidebar-user-name {
+    color: var(--primary);
+}
+
+.sidebar-user:hover .sidebar-user-arrow {
+    color: var(--primary);
+    transform: translateX(2px);
+}
+
+.sidebar-user-arrow {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: color var(--duration-fast), transform var(--duration-fast);
 }
 
 .sidebar-user-avatar {
@@ -1938,6 +1967,10 @@ input::placeholder, textarea::placeholder {
 .dashboard.is-collapsed .nav-item span,
 .dashboard.is-collapsed .nav-item .nav-badge,
 .dashboard.is-collapsed .sidebar-user-info {
+    display: none;
+}
+
+.dashboard.is-collapsed .sidebar-user-arrow {
     display: none;
 }
 
