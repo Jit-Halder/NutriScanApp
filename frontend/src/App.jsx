@@ -74,7 +74,7 @@ function AppInner() {
         }
     }, [token, showToast, handleLogout, setCurrentView]);
 
-    const isAuthMode = !token || ['auth-view', 'otp-view', 'forgot-password-view', 'reset-password-view'].includes(currentView);
+    const isAuthMode = ['auth-view', 'otp-view', 'forgot-password-view', 'reset-password-view'].includes(currentView);
 
     return (
         <div className={`dashboard ${isAuthMode ? 'auth-mode' : ''} ${isCollapsed ? 'is-collapsed' : ''}`}>
