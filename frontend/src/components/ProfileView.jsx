@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 export default function ProfileView({ onBack, onOpenDeleteModal }) {
-    const { token } = useAuth();
+    const { token, handleSessionExpired } = useAuth();
     const { showToast } = useToast();
 
     const [name, setName] = useState('');
@@ -20,7 +20,13 @@ export default function ProfileView({ onBack, onOpenDeleteModal }) {
         fetch('/api/profile', {
             headers: { 'Authorization': `Bearer ${token}` }
         })
-            .then(res => res.ok ? res.json() : null)
+            .then(res => {
+                if (res.status === 401 || res.status === 403) {
+                    handleSessionExpired();
+                    return null;
+                }
+                return res.ok ? res.json() : null;
+            })
             .then(profile => {
                 if (profile) {
                     if (profile.name) setName(profile.name);
@@ -36,7 +42,13 @@ export default function ProfileView({ onBack, onOpenDeleteModal }) {
                     fetch('/api/auth/me', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     })
-                        .then(res => res.ok ? res.json() : null)
+                        .then(res => {
+                            if (res.status === 401 || res.status === 403) {
+                                handleSessionExpired();
+                                return null;
+                            }
+                            return res.ok ? res.json() : null;
+                        })
                         .then(meData => {
                             if (meData && meData.name) setName(meData.name);
                         })
@@ -44,7 +56,7 @@ export default function ProfileView({ onBack, onOpenDeleteModal }) {
                 }
             })
             .catch(err => console.error(err));
-    }, [token]);
+    }, [token, handleSessionExpired]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -71,6 +83,8 @@ export default function ProfileView({ onBack, onOpenDeleteModal }) {
             if (res.ok) {
                 showToast('Profile updated successfully!', 'success');
                 onBack();
+            } else if (res.status === 401 || res.status === 403) {
+                handleSessionExpired();
             } else {
                 showToast('Failed to update profile.', 'error');
             }

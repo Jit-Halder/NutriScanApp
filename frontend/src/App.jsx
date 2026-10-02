@@ -25,7 +25,7 @@ import DeleteModal from './components/Modals/DeleteModal';
 
 // Inner app that has access to all contexts
 function AppInner() {
-    const { token, handleLogout, handleAccountDeleted } = useAuth();
+    const { token, handleLogout, handleSessionExpired, handleAccountDeleted } = useAuth();
     const { currentView, setCurrentView } = useNavigation();
     const { toasts, showToast } = useToast();
 
@@ -60,8 +60,7 @@ function AppInner() {
             } else if (res.status === 404) {
                 setCurrentView('manual-fallback-view');
             } else if (res.status === 401 || res.status === 403) {
-                showToast('Session expired. Please login again.', 'error');
-                handleLogout();
+                handleSessionExpired();
             } else {
                 const errData = await res.json().catch(() => ({}));
                 showToast(errData.message || 'Error communicating with server.', 'error');
@@ -72,7 +71,7 @@ function AppInner() {
             showToast('Network error or server is unreachable.', 'error');
             setCurrentView('choice-view');
         }
-    }, [token, showToast, handleLogout, setCurrentView]);
+    }, [token, showToast, handleSessionExpired, setCurrentView]);
 
     // Redirect unauthenticated users to /login for all protected routes
     const ProtectedRoute = ({ children }) => {

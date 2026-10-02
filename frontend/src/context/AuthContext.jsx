@@ -24,6 +24,24 @@ export function AuthProvider({ children }) {
         }
     }, []);
 
+    const handleSessionExpired = useCallback(() => {
+        setToken(null);
+        setUser(null);
+        setAuthEmail('');
+        setAuthPassword('');
+        showToast('Session expired. Please login again.', 'error');
+        setCurrentView('auth-view');
+    }, [setToken, showToast, setCurrentView]);
+
+    const handleLogout = useCallback(() => {
+        setToken(null);
+        setUser(null);
+        setAuthEmail('');
+        setAuthPassword('');
+        showToast('Logged out successfully.', 'info');
+        setCurrentView('auth-view');
+    }, [setToken, showToast, setCurrentView]);
+
     // Fetch user info whenever token changes
     useEffect(() => {
         if (!token) {
@@ -34,21 +52,18 @@ export function AuthProvider({ children }) {
         fetch('/api/auth/me', {
             headers: { 'Authorization': `Bearer ${token}` }
         })
-            .then(res => res.ok ? res.json() : null)
+            .then(res => {
+                if (res.status === 401 || res.status === 403) {
+                    handleSessionExpired();
+                    return null;
+                }
+                return res.ok ? res.json() : null;
+            })
             .then(data => {
                 if (data) setUser(data);
             })
             .catch(err => console.error('Me request failed', err));
-    }, [token]);
-
-    const handleLogout = useCallback(() => {
-        setToken(null);
-        setUser(null);
-        setAuthEmail('');
-        setAuthPassword('');
-        showToast('Logged out successfully.', 'info');
-        setCurrentView('auth-view');
-    }, [setToken, showToast, setCurrentView]);
+    }, [token, handleSessionExpired]);
 
     const handleAccountDeleted = useCallback(() => {
         setToken(null);
@@ -68,6 +83,7 @@ export function AuthProvider({ children }) {
             authPassword,
             setAuthPassword,
             handleLogout,
+            handleSessionExpired,
             handleAccountDeleted,
         }}>
             {children}

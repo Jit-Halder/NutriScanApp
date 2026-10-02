@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 export default function HistoryFavoritesView({ onSelectProduct, onBack }) {
-    const { token } = useAuth();
+    const { token, handleSessionExpired } = useAuth();
     const { showToast } = useToast();
 
     const [activeTab, setActiveTab] = useState('history'); // 'history' | 'favorites'
@@ -19,7 +19,13 @@ export default function HistoryFavoritesView({ onSelectProduct, onBack }) {
             fetch('/api/products/history', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 401 || res.status === 403) {
+                        handleSessionExpired();
+                        return null;
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (Array.isArray(data)) setHistoryItems(data);
                     else setHistoryItems([]);
@@ -33,7 +39,13 @@ export default function HistoryFavoritesView({ onSelectProduct, onBack }) {
             fetch('/api/products/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 401 || res.status === 403) {
+                        handleSessionExpired();
+                        return null;
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (Array.isArray(data)) setFavoriteItems(data);
                     else setFavoriteItems([]);
@@ -44,7 +56,7 @@ export default function HistoryFavoritesView({ onSelectProduct, onBack }) {
                 })
                 .finally(() => setLoading(false));
         }
-    }, [activeTab, token, showToast]);
+    }, [activeTab, token, showToast, handleSessionExpired]);
 
     return (
         <div id="history-view" className="view active">
