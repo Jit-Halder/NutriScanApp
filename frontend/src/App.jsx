@@ -74,7 +74,13 @@ function AppInner() {
         }
     }, [token, showToast, handleLogout, setCurrentView]);
 
-    const isAuthMode = ['auth-view', 'otp-view', 'forgot-password-view', 'reset-password-view'].includes(currentView);
+    // Redirect unauthenticated users to /login for all protected routes
+    const ProtectedRoute = ({ children }) => {
+        if (!token) return <Navigate to="/login" replace />;
+        return children;
+    };
+
+    const isAuthMode = !token || ['auth-view', 'otp-view', 'forgot-password-view', 'reset-password-view'].includes(currentView);
 
     return (
         <div className={`dashboard ${isAuthMode ? 'auth-mode' : ''} ${isCollapsed ? 'is-collapsed' : ''}`}>
@@ -99,73 +105,85 @@ function AppInner() {
                     <Route path="/forgot-password" element={<ForgotPasswordView />} />
                     <Route path="/reset-password" element={<ResetPasswordView />} />
 
-                    <Route path="/" element={<ChoiceView />} />
+                    <Route path="/" element={<ProtectedRoute><ChoiceView /></ProtectedRoute>} />
                     <Route
                         path="/scan"
                         element={
-                            <ScannerView
-                                onScanSuccess={handleProductScan}
-                                onBack={() => setCurrentView('choice-view')}
-                            />
+                            <ProtectedRoute>
+                                <ScannerView
+                                    onScanSuccess={handleProductScan}
+                                    onBack={() => setCurrentView('choice-view')}
+                                />
+                            </ProtectedRoute>
                         }
                     />
                     <Route
                         path="/manual-entry"
                         element={
-                            <ManualEntryView
-                                onSearch={handleProductScan}
-                                onBack={() => setCurrentView('choice-view')}
-                            />
+                            <ProtectedRoute>
+                                <ManualEntryView
+                                    onSearch={handleProductScan}
+                                    onBack={() => setCurrentView('choice-view')}
+                                />
+                            </ProtectedRoute>
                         }
                     />
                     <Route
                         path="/loading"
-                        element={<LoadingView statusText="Analyzing product..." />}
+                        element={<ProtectedRoute><LoadingView statusText="Analyzing product..." /></ProtectedRoute>}
                     />
                     <Route
                         path="/manual-fallback"
                         element={
-                            <ManualFallbackView
-                                barcode={currentBarcode}
-                                onSubmitSuccess={(pData, pAnalysis) => {
-                                    pData._source = 'manual';
-                                    setProductData(pData);
-                                    setAnalysis(pAnalysis);
-                                    setCurrentView('results-view');
-                                }}
-                                onCancel={() => setCurrentView('choice-view')}
-                            />
+                            <ProtectedRoute>
+                                <ManualFallbackView
+                                    barcode={currentBarcode}
+                                    onSubmitSuccess={(pData, pAnalysis) => {
+                                        pData._source = 'manual';
+                                        setProductData(pData);
+                                        setAnalysis(pAnalysis);
+                                        setCurrentView('results-view');
+                                    }}
+                                    onCancel={() => setCurrentView('choice-view')}
+                                />
+                            </ProtectedRoute>
                         }
                     />
                     <Route
                         path="/results"
                         element={
-                            <ResultsView
-                                productData={productData}
-                                analysis={analysis}
-                                onScanAgain={() => setCurrentView('choice-view')}
-                            />
+                            <ProtectedRoute>
+                                <ResultsView
+                                    productData={productData}
+                                    analysis={analysis}
+                                    onScanAgain={() => setCurrentView('choice-view')}
+                                />
+                            </ProtectedRoute>
                         }
                     />
                     <Route
                         path="/history"
                         element={
-                            <HistoryFavoritesView
-                                onSelectProduct={handleProductScan}
-                                onBack={() => setCurrentView('choice-view')}
-                            />
+                            <ProtectedRoute>
+                                <HistoryFavoritesView
+                                    onSelectProduct={handleProductScan}
+                                    onBack={() => setCurrentView('choice-view')}
+                                />
+                            </ProtectedRoute>
                         }
                     />
                     <Route
                         path="/profile"
                         element={
-                            <ProfileView
-                                onBack={() => setCurrentView('choice-view')}
-                                onOpenDeleteModal={() => setIsDeleteModalOpen(true)}
-                            />
+                            <ProtectedRoute>
+                                <ProfileView
+                                    onBack={() => setCurrentView('choice-view')}
+                                    onOpenDeleteModal={() => setIsDeleteModalOpen(true)}
+                                />
+                            </ProtectedRoute>
                         }
                     />
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<Navigate to={token ? '/' : '/login'} replace />} />
                 </Routes>
             </main>
 
