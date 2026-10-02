@@ -1,8 +1,8 @@
 /**
- * health-score.js - Official Nutri-Score & NOVA Group logic
+ * healthScore.js - Official Nutri-Score & NOVA Group logic
  */
 
-class HealthScoreCalculator {
+export class HealthScoreCalculator {
     // Standard colors
     static COLORS = {
         nutri: {
@@ -32,7 +32,7 @@ class HealthScoreCalculator {
 
         // If no Nutri-Score from API (like in pure manual entry), calculate it locally as a final fallback
         if (!nutriGrade || !['a','b','c','d','e'].includes(nutriGrade)) {
-            nutriGrade = this._calculateNutriScoreLocal(data.nutrition);
+            nutriGrade = this._calculateNutriScoreLocal(data.nutrition || {});
             isCalculated = true;
         }
 
@@ -52,34 +52,29 @@ class HealthScoreCalculator {
         let badPoints = 0;
         
         // Energy (max 10)
-        badPoints += Math.min(10, Math.floor(n.energyKcal / 80)); // Approx 335kJ = 80kcal
+        badPoints += Math.min(10, Math.floor((n.energyKcal || 0) / 80)); // Approx 335kJ = 80kcal
         
         // Sugar (max 10)
-        badPoints += Math.min(10, Math.floor(n.sugars / 4.5));
+        badPoints += Math.min(10, Math.floor((n.sugars || 0) / 4.5));
         
         // Sat Fat (max 10)
-        badPoints += Math.min(10, Math.floor(n.saturatedFat));
+        badPoints += Math.min(10, Math.floor(n.saturatedFat || 0));
         
-        // Sodium (max 10) - Convert mg to g (1g = 1000mg = ~400mg sodium per point)
-        badPoints += Math.min(10, Math.floor(n.sodium / 90)); 
+        // Sodium (max 10) - Convert mg to g
+        badPoints += Math.min(10, Math.floor((n.sodium || 0) / 90)); 
 
         let goodPoints = 0;
         
         // Fiber (max 5)
-        goodPoints += Math.min(5, Math.floor(n.fiber / 0.9));
+        goodPoints += Math.min(5, Math.floor((n.fiber || 0) / 0.9));
         
         // Protein (max 5)
-        goodPoints += Math.min(5, Math.floor(n.protein / 1.6));
+        goodPoints += Math.min(5, Math.floor((n.protein || 0) / 1.6));
 
         // Simplified final score
         const finalScore = badPoints - goodPoints;
 
-        // Corrected Nutri-Score thresholds based on FSA-NPS (Beverages vs Solid Foods simplified)
-        // Since beverages (like Pepsi) usually have lower overall points but should be rated poorly due to sugar,
-        // we adjust the thresholds. If it's pure sugar water, it should definitely be an E.
-        
-        // Heuristic: If it has zero protein/fiber and high sugar, it's likely a soda/candy.
-        if (n.sugars > 10 && goodPoints === 0) {
+        if ((n.sugars || 0) > 10 && goodPoints === 0) {
             return 'e'; // Force E for high sugar, empty calorie foods
         }
 
@@ -109,9 +104,9 @@ class HealthScoreCalculator {
 
         return {
             grade: grade.toUpperCase(),
-            color: this.COLORS.nutri[grade],
+            color: this.COLORS.nutri[grade] || this.COLORS.nutri['c'],
             description: descriptions[grade] || 'Unknown',
-            reason: reasons[grade] + (isCalculated ? ' (Calculated locally from entered nutrition)' : ' (Official rating via Open Food Facts API)'),
+            reason: (reasons[grade] || '') + (isCalculated ? ' (Calculated locally from entered nutrition)' : ' (Official rating via Open Food Facts API)'),
             isCalculated
         };
     }
@@ -135,9 +130,9 @@ class HealthScoreCalculator {
 
         return {
             group: group,
-            color: this.COLORS.nova[group],
+            color: this.COLORS.nova[group] || '#94a3b8',
             description: descriptions[group] || 'Unknown',
-            reason: reasons[group]
+            reason: reasons[group] || ''
         };
     }
 
@@ -160,3 +155,25 @@ class HealthScoreCalculator {
         return htmlText;
     }
 }
+
+export const ADDITIVE_INFO = {
+    'E322': 'Lecithins: Emulsifier, generally considered safe.',
+    'E412': 'Guar gum: Thickener, generally safe but large amounts may cause digestive issues.',
+    'E330': 'Citric acid: Natural preservative/flavor enhancer, safe.',
+    'E621': 'MSG: Flavor enhancer. Safe for most, some report sensitivities.',
+    'E211': 'Sodium benzoate: Preservative. May trigger allergies/asthma in some.',
+    'E250': 'Sodium nitrite: Preservative in meats. Linked to increased cancer risk.',
+    'E150A': 'Caramel color: Food coloring. Generally safe.',
+    'E150D': 'Caramel color: Contains sulfites, controversial in large amounts.',
+    'E129': 'Allura Red AC: Artificial color. Linked to hyperactivity in children.',
+    'E951': 'Aspartame: Artificial sweetener. Controversial for sensitive individuals.',
+    'E955': 'Sucralose: Artificial sweetener. May affect gut microbiome.',
+    'E415': 'Xanthan gum: Thickener and stabilizer. Generally safe.',
+    'E300': 'Ascorbic acid: Vitamin C, used as a preservative. Very safe.',
+    'E407': 'Carrageenan: Thickener from seaweed. May cause digestive inflammation.',
+    'E471': 'Mono/diglycerides: Emulsifiers from fats. Generally safe.',
+    'E631': 'Disodium inosinate: Flavor enhancer, often used with MSG.',
+    'E627': 'Disodium guanylate: Flavor enhancer, often used with MSG.',
+    'E339': 'Sodium phosphates: Emulsifier/Preservative. Safe in moderation.',
+    'E202': 'Potassium sorbate: Preservative. Generally safe.'
+};

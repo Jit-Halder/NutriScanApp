@@ -1,17 +1,11 @@
 /**
- * api.js - Multi-API handler with fallback chain for better Indian product coverage
- * 
- * Fallback Chain:
- *   1. Open Food Facts (primary) – full nutrition + scores
- *   2. UPCitemdb (fallback)      – product identity only (name, brand, image)
- *   3. Manual Entry (last resort) – user enters everything
+ * api.js - Multi-API handler with fallback chain for food products & backend requests
  */
 
 const OFF_API_BASE = 'https://world.openfoodfacts.net/api/v2/product';
 const SPOONACULAR_API_KEY = 'cbede31f3bf8411e98fcfff16c849055';
 
-class FoodAPI {
-
+export class FoodAPI {
     /**
      * Main entry point — tries each API in the fallback chain.
      * @param {string} barcode
@@ -66,7 +60,6 @@ class FoodAPI {
         const data = await response.json();
 
         if (data.status === 1 && data.product) {
-            // Extra check: does the product actually have meaningful data?
             const p = data.product;
             const hasName = p.product_name && p.product_name.trim().length > 0;
             const hasNutriments = p.nutriments && Object.keys(p.nutriments).length > 0;
@@ -74,7 +67,6 @@ class FoodAPI {
             if (hasName && hasNutriments) {
                 return this._normalizeOFFData(p, barcode);
             }
-            // If name or nutriments are empty, treat as "not found" and fall through
             console.info('[OFF] Product found but data is incomplete, trying fallback...');
             return null;
         }
@@ -113,7 +105,7 @@ class FoodAPI {
         const url = `https://api.spoonacular.com/food/products/upc/${barcode}?apiKey=${SPOONACULAR_API_KEY}`;
         
         const response = await fetch(url);
-        if (!response.ok) return null; // Returns 404 or failure if not found
+        if (!response.ok) return null;
         
         const data = await response.json();
         if (data.status === 'failure') return null;
@@ -122,7 +114,6 @@ class FoodAPI {
     }
 
     static _normalizeSpoonacularData(data, barcode) {
-        // Extract nutrients from the array
         const getNutrient = (name) => {
             if (!data.nutrition || !data.nutrition.nutrients) return 0;
             const nut = data.nutrition.nutrients.find(n => n.name === name);
@@ -140,8 +131,8 @@ class FoodAPI {
             imageUrl: data.image || null,
             ingredients: ingredients,
             additives: [],
-            novaGroup: null, // Spoonacular doesn't provide NOVA
-            nutriScore: null, // We calculate this later
+            novaGroup: null,
+            nutriScore: null,
             nutrition: {
                 energyKcal: getNutrient('Calories') || 0,
                 protein: getNutrient('Protein') || 0,
@@ -156,24 +147,25 @@ class FoodAPI {
     }
 }
 
-// ─── Backend API Communication ──────────────────────────────────────
-class BackendAPI {
+export class BackendAPI {
     static get BASE_URL() {
         return '/api';
     }
 
+    static getHeaders(token) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return headers;
+    }
+
     static async resendOTP(email) {
-        try {
-            const response = await fetch(`${this.BASE_URL}/auth/resend-otp`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Failed to resend OTP');
-            return data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await fetch(`${this.BASE_URL}/auth/resend-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to resend OTP');
+        return data;
     }
 }

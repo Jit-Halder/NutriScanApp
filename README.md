@@ -47,7 +47,7 @@
 
 | Layer         | Technology                                                    |
 |---------------|---------------------------------------------------------------|
-| **Frontend**  | Vanilla HTML5, CSS3, JavaScript (ES6+)                        |
+| **Frontend**  | React, Vite, CSS3, JavaScript (ES6+)                          |
 | **Backend**   | Node.js, Express.js 5                                         |
 | **Database**  | MySQL (Aiven Cloud) with Sequelize ORM                        |
 | **Auth**      | JWT (jsonwebtoken) + bcrypt password hashing                  |
