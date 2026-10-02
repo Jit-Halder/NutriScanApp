@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
-export default function HistoryFavoritesView({ token, onSelectProduct, onBack, showToast }) {
+export default function HistoryFavoritesView({ onSelectProduct, onBack }) {
+    const { token } = useAuth();
+    const { showToast } = useToast();
+
     const [activeTab, setActiveTab] = useState('history'); // 'history' | 'favorites'
     const [historyItems, setHistoryItems] = useState([]);
     const [favoriteItems, setFavoriteItems] = useState([]);
@@ -14,30 +19,30 @@ export default function HistoryFavoritesView({ token, onSelectProduct, onBack, s
             fetch('/api/products/history', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setHistoryItems(data);
-                else setHistoryItems([]);
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('Failed to load history.', 'error');
-            })
-            .finally(() => setLoading(false));
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setHistoryItems(data);
+                    else setHistoryItems([]);
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Failed to load history.', 'error');
+                })
+                .finally(() => setLoading(false));
         } else {
             fetch('/api/products/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setFavoriteItems(data);
-                else setFavoriteItems([]);
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('Failed to load favorites.', 'error');
-            })
-            .finally(() => setLoading(false));
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setFavoriteItems(data);
+                    else setFavoriteItems([]);
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Failed to load favorites.', 'error');
+                })
+                .finally(() => setLoading(false));
         }
     }, [activeTab, token, showToast]);
 

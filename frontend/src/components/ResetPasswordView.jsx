@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useNavigation } from '../context/NavigationContext';
 
-export default function ResetPasswordView({ setCurrentView, authEmail, showToast }) {
+export default function ResetPasswordView() {
+    const { authEmail } = useAuth();
+    const { showToast } = useToast();
+    const { setCurrentView } = useNavigation();
+
     const [resetOtpCode, setResetOtpCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);

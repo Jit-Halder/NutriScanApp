@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useNavigation } from '../context/NavigationContext';
 
-export default function ForgotPasswordView({ setCurrentView, authEmail, setAuthEmail, showToast }) {
+export default function ForgotPasswordView() {
+    const { authEmail, setAuthEmail } = useAuth();
+    const { showToast } = useToast();
+    const { setCurrentView } = useNavigation();
+
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {

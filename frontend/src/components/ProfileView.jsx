@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
-export default function ProfileView({ token, onBack, onOpenDeleteModal, showToast }) {
+export default function ProfileView({ onBack, onOpenDeleteModal }) {
+    const { token } = useAuth();
+    const { showToast } = useToast();
+
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [gender, setGender] = useState('');
@@ -15,30 +20,30 @@ export default function ProfileView({ token, onBack, onOpenDeleteModal, showToas
         fetch('/api/profile', {
             headers: { 'Authorization': `Bearer ${token}` }
         })
-        .then(res => res.ok ? res.json() : null)
-        .then(profile => {
-            if (profile) {
-                if (profile.name) setName(profile.name);
-                if (profile.age) setAge(profile.age);
-                if (profile.gender) setGender(profile.gender);
-                if (profile.healthConditions) setHealthConditions(profile.healthConditions.join(', '));
-                if (profile.allergies) setAllergies(profile.allergies.join(', '));
-                if (profile.dietaryPreferences) setDietaryPreferences(profile.dietaryPreferences.join(', '));
-            }
+            .then(res => res.ok ? res.json() : null)
+            .then(profile => {
+                if (profile) {
+                    if (profile.name) setName(profile.name);
+                    if (profile.age) setAge(profile.age);
+                    if (profile.gender) setGender(profile.gender);
+                    if (profile.healthConditions) setHealthConditions(profile.healthConditions.join(', '));
+                    if (profile.allergies) setAllergies(profile.allergies.join(', '));
+                    if (profile.dietaryPreferences) setDietaryPreferences(profile.dietaryPreferences.join(', '));
+                }
 
-            // If name is not in profile, fetch from /api/auth/me
-            if (!profile || !profile.name) {
-                fetch('/api/auth/me', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                .then(res => res.ok ? res.json() : null)
-                .then(meData => {
-                    if (meData && meData.name) setName(meData.name);
-                })
-                .catch(() => {});
-            }
-        })
-        .catch(err => console.error(err));
+                // If name is not in profile, fetch from /api/auth/me
+                if (!profile || !profile.name) {
+                    fetch('/api/auth/me', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                        .then(res => res.ok ? res.json() : null)
+                        .then(meData => {
+                            if (meData && meData.name) setName(meData.name);
+                        })
+                        .catch(() => {});
+                }
+            })
+            .catch(err => console.error(err));
     }, [token]);
 
     const handleSubmit = async (e) => {

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
-export default function ManualFallbackView({ barcode, token, onSubmitSuccess, onCancel, showToast }) {
+export default function ManualFallbackView({ barcode, onSubmitSuccess, onCancel }) {
+    const { token } = useAuth();
+    const { showToast } = useToast();
     const [name, setName] = useState('');
     const [brand, setBrand] = useState('');
     const [ingredients, setIngredients] = useState('');

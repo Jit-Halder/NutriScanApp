@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useNavigation } from '../context/NavigationContext';
 
-export default function AuthView({ setCurrentView, setToken, showToast, authEmail, setAuthEmail, authPassword, setAuthPassword }) {
+export default function AuthView() {
+    const { setToken, authEmail, setAuthEmail, authPassword, setAuthPassword } = useAuth();
+    const { showToast } = useToast();
+    const { setCurrentView } = useNavigation();
+
     const [isRegistering, setIsRegistering] = useState(false);
     const [name, setName] = useState('');
     const [showPassword, setShowPassword] = useState(false);

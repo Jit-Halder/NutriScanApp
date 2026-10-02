@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigation } from '../context/NavigationContext';
 
-export default function ChoiceView({ setCurrentView }) {
+export default function ChoiceView() {
+    const { setCurrentView } = useNavigation();
     return (
         <div id="choice-view" className="view active">
             <div className="hero-section">

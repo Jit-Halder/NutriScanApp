@@ -1,18 +1,19 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useNavigation } from '../context/NavigationContext';
 
 export default function Sidebar({
-    currentView,
-    setCurrentView,
-    theme,
-    toggleTheme,
-    token,
-    user,
     isCollapsed,
     setIsCollapsed,
     isMobileOpen,
     setIsMobileOpen,
     onLogoutClick
 }) {
+    const { token, user } = useAuth();
+    const { theme, toggleTheme } = useTheme();
+    const { currentView, setCurrentView } = useNavigation();
+
     const handleLogoClick = (e) => {
         e.preventDefault();
         if (window.innerWidth <= 768) {

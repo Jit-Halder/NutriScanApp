@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { BackendAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useNavigation } from '../context/NavigationContext';
 
-export default function OtpView({ setCurrentView, authEmail, authPassword, setToken, showToast }) {
+export default function OtpView() {
+    const { authEmail, authPassword, setToken } = useAuth();
+    const { showToast } = useToast();
+    const { setCurrentView } = useNavigation();
+
     const [otpCode, setOtpCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [cooldown, setCooldown] = useState(0);

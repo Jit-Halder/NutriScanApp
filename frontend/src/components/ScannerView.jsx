@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { useToast } from '../context/ToastContext';
 
-export default function ScannerView({ onScanSuccess, onBack, showToast }) {
+export default function ScannerView({ onScanSuccess, onBack }) {
+    const { showToast } = useToast();
     const scannerRef = useRef(null);
 
     useEffect(() => {

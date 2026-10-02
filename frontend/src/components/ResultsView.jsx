@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HealthScoreCalculator, ADDITIVE_INFO } from '../utils/healthScore';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
-export default function ResultsView({ productData, analysis, token, onScanAgain, showToast }) {
+export default function ResultsView({ productData, analysis, onScanAgain }) {
+    const { token } = useAuth();
+    const { showToast } = useToast();
     const [isFavorite, setIsFavorite] = useState(false);
     const [favoriteLoading, setFavoriteLoading] = useState(false);
 

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { NavigationProvider, useNavigation } from './context/NavigationContext';
+import { ToastProvider, useToast } from './context/ToastContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+
 import Sidebar from './components/Sidebar';
 import MobileHeader from './components/MobileHeader';
 import ToastContainer from './components/ToastContainer';
@@ -17,15 +23,11 @@ import ProfileView from './components/ProfileView';
 import LogoutModal from './components/Modals/LogoutModal';
 import DeleteModal from './components/Modals/DeleteModal';
 
-export default function App() {
-    const [token, setToken] = useState(() => localStorage.getItem('token') || null);
-    const [user, setUser] = useState(null);
-    const [theme, setTheme] = useState(() => localStorage.getItem('nutriscan-theme') || 'light');
-    const [currentView, setCurrentView] = useState(() => token ? 'choice-view' : 'auth-view');
-
-    // Shared auth form state
-    const [authEmail, setAuthEmail] = useState('');
-    const [authPassword, setAuthPassword] = useState('');
+// Inner app that has access to all contexts
+function AppInner() {
+    const { token, handleLogout, handleAccountDeleted } = useAuth();
+    const { currentView, setCurrentView } = useNavigation();
+    const { toasts, showToast } = useToast();
 
     // Active product results state
     const [currentBarcode, setCurrentBarcode] = useState('');
@@ -39,50 +41,6 @@ export default function App() {
     // Modal states
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-    // Toast state
-    const [toasts, setToasts] = useState([]);
-
-    const showToast = useCallback((message, type = 'info') => {
-        const id = Date.now() + Math.random();
-        setToasts(prev => [...prev, { id, message, type, fading: false }]);
-
-        setTimeout(() => {
-            setToasts(prev => prev.map(t => t.id === id ? { ...t, fading: true } : t));
-            setTimeout(() => {
-                setToasts(prev => prev.filter(t => t.id !== id));
-            }, 300);
-        }, 3000);
-    }, []);
-
-    // Theme effect
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('nutriscan-theme', theme);
-    }, [theme]);
-
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
-
-    // User details effect
-    useEffect(() => {
-        if (!token) {
-            setUser(null);
-            return;
-        }
-
-        fetch('/api/auth/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-            if (data) {
-                setUser(data);
-            }
-        })
-        .catch(err => console.error("Me request failed", err));
-    }, [token]);
 
     // Handle scan or barcode selection
     const handleProductScan = useCallback(async (barcodeText) => {
@@ -103,9 +61,7 @@ export default function App() {
                 setCurrentView('manual-fallback-view');
             } else if (res.status === 401 || res.status === 403) {
                 showToast('Session expired. Please login again.', 'error');
-                setToken(null);
-                localStorage.removeItem('token');
-                setCurrentView('auth-view');
+                handleLogout();
             } else {
                 const errData = await res.json().catch(() => ({}));
                 showToast(errData.message || 'Error communicating with server.', 'error');
@@ -116,28 +72,7 @@ export default function App() {
             showToast('Network error or server is unreachable.', 'error');
             setCurrentView('choice-view');
         }
-    }, [token, showToast]);
-
-    const handleLogout = () => {
-        setIsLogoutModalOpen(false);
-        setToken(null);
-        localStorage.removeItem('token');
-        setUser(null);
-        setAuthEmail('');
-        setAuthPassword('');
-        showToast('Logged out successfully.', 'info');
-        setCurrentView('auth-view');
-    };
-
-    const handleAccountDeleted = () => {
-        setIsDeleteModalOpen(false);
-        setToken(null);
-        localStorage.removeItem('token');
-        setUser(null);
-        setAuthEmail('');
-        setAuthPassword('');
-        setCurrentView('auth-view');
-    };
+    }, [token, showToast, handleLogout, setCurrentView]);
 
     const isAuthMode = !token || ['auth-view', 'otp-view', 'forgot-password-view', 'reset-password-view'].includes(currentView);
 
@@ -145,12 +80,6 @@ export default function App() {
         <div className={`dashboard ${isAuthMode ? 'auth-mode' : ''} ${isCollapsed ? 'is-collapsed' : ''}`}>
             {!isAuthMode && (
                 <Sidebar
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                    theme={theme}
-                    toggleTheme={toggleTheme}
-                    token={token}
-                    user={user}
                     isCollapsed={isCollapsed}
                     setIsCollapsed={setIsCollapsed}
                     isMobileOpen={isMobileOpen}
@@ -164,110 +93,80 @@ export default function App() {
                     <MobileHeader onMenuClick={() => setIsMobileOpen(true)} />
                 )}
 
-                {currentView === 'auth-view' && (
-                    <AuthView
-                        setCurrentView={setCurrentView}
-                        setToken={setToken}
-                        showToast={showToast}
-                        authEmail={authEmail}
-                        setAuthEmail={setAuthEmail}
-                        authPassword={authPassword}
-                        setAuthPassword={setAuthPassword}
+                <Routes>
+                    <Route path="/login" element={<AuthView />} />
+                    <Route path="/verify-otp" element={<OtpView />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordView />} />
+                    <Route path="/reset-password" element={<ResetPasswordView />} />
+
+                    <Route path="/" element={<ChoiceView />} />
+                    <Route
+                        path="/scan"
+                        element={
+                            <ScannerView
+                                onScanSuccess={handleProductScan}
+                                onBack={() => setCurrentView('choice-view')}
+                            />
+                        }
                     />
-                )}
-
-                {currentView === 'otp-view' && (
-                    <OtpView
-                        setCurrentView={setCurrentView}
-                        authEmail={authEmail}
-                        authPassword={authPassword}
-                        setToken={setToken}
-                        showToast={showToast}
+                    <Route
+                        path="/manual-entry"
+                        element={
+                            <ManualEntryView
+                                onSearch={handleProductScan}
+                                onBack={() => setCurrentView('choice-view')}
+                            />
+                        }
                     />
-                )}
-
-                {currentView === 'forgot-password-view' && (
-                    <ForgotPasswordView
-                        setCurrentView={setCurrentView}
-                        authEmail={authEmail}
-                        setAuthEmail={setAuthEmail}
-                        showToast={showToast}
+                    <Route
+                        path="/loading"
+                        element={<LoadingView statusText="Analyzing product..." />}
                     />
-                )}
-
-                {currentView === 'reset-password-view' && (
-                    <ResetPasswordView
-                        setCurrentView={setCurrentView}
-                        authEmail={authEmail}
-                        showToast={showToast}
+                    <Route
+                        path="/manual-fallback"
+                        element={
+                            <ManualFallbackView
+                                barcode={currentBarcode}
+                                onSubmitSuccess={(pData, pAnalysis) => {
+                                    pData._source = 'manual';
+                                    setProductData(pData);
+                                    setAnalysis(pAnalysis);
+                                    setCurrentView('results-view');
+                                }}
+                                onCancel={() => setCurrentView('choice-view')}
+                            />
+                        }
                     />
-                )}
-
-                {currentView === 'choice-view' && (
-                    <ChoiceView setCurrentView={setCurrentView} />
-                )}
-
-                {currentView === 'scanner-view' && (
-                    <ScannerView
-                        onScanSuccess={handleProductScan}
-                        onBack={() => setCurrentView('choice-view')}
-                        showToast={showToast}
+                    <Route
+                        path="/results"
+                        element={
+                            <ResultsView
+                                productData={productData}
+                                analysis={analysis}
+                                onScanAgain={() => setCurrentView('choice-view')}
+                            />
+                        }
                     />
-                )}
-
-                {currentView === 'manual-entry-view' && (
-                    <ManualEntryView
-                        onSearch={handleProductScan}
-                        onBack={() => setCurrentView('choice-view')}
+                    <Route
+                        path="/history"
+                        element={
+                            <HistoryFavoritesView
+                                onSelectProduct={handleProductScan}
+                                onBack={() => setCurrentView('choice-view')}
+                            />
+                        }
                     />
-                )}
-
-                {currentView === 'loading-view' && (
-                    <LoadingView statusText="Analyzing product..." />
-                )}
-
-                {currentView === 'manual-fallback-view' && (
-                    <ManualFallbackView
-                        barcode={currentBarcode}
-                        token={token}
-                        onSubmitSuccess={(pData, pAnalysis) => {
-                            pData._source = 'manual';
-                            setProductData(pData);
-                            setAnalysis(pAnalysis);
-                            setCurrentView('results-view');
-                        }}
-                        onCancel={() => setCurrentView('choice-view')}
-                        showToast={showToast}
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProfileView
+                                onBack={() => setCurrentView('choice-view')}
+                                onOpenDeleteModal={() => setIsDeleteModalOpen(true)}
+                            />
+                        }
                     />
-                )}
-
-                {currentView === 'results-view' && (
-                    <ResultsView
-                        productData={productData}
-                        analysis={analysis}
-                        token={token}
-                        onScanAgain={() => setCurrentView('choice-view')}
-                        showToast={showToast}
-                    />
-                )}
-
-                {currentView === 'history-view' && (
-                    <HistoryFavoritesView
-                        token={token}
-                        onSelectProduct={handleProductScan}
-                        onBack={() => setCurrentView('choice-view')}
-                        showToast={showToast}
-                    />
-                )}
-
-                {currentView === 'profile-view' && (
-                    <ProfileView
-                        token={token}
-                        onBack={() => setCurrentView('choice-view')}
-                        onOpenDeleteModal={() => setIsDeleteModalOpen(true)}
-                        showToast={showToast}
-                    />
-                )}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
             </main>
 
             <ToastContainer toasts={toasts} />
@@ -275,16 +174,38 @@ export default function App() {
             <LogoutModal
                 isOpen={isLogoutModalOpen}
                 onClose={() => setIsLogoutModalOpen(false)}
-                onConfirm={handleLogout}
+                onConfirm={() => {
+                    setIsLogoutModalOpen(false);
+                    handleLogout();
+                }}
             />
 
             <DeleteModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                token={token}
-                onAccountDeleted={handleAccountDeleted}
-                showToast={showToast}
+                onAccountDeleted={() => {
+                    setIsDeleteModalOpen(false);
+                    handleAccountDeleted();
+                }}
             />
         </div>
     );
 }
+
+// Root App wraps everything in providers and BrowserRouter
+export default function App() {
+    return (
+        <ThemeProvider>
+            <BrowserRouter>
+                <NavigationProvider>
+                    <ToastProvider>
+                        <AuthProvider>
+                            <AppInner />
+                        </AuthProvider>
+                    </ToastProvider>
+                </NavigationProvider>
+            </BrowserRouter>
+        </ThemeProvider>
+    );
+}
+

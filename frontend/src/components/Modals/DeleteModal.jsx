@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
-export default function DeleteModal({ isOpen, onClose, token, onAccountDeleted, showToast }) {
+export default function DeleteModal({ isOpen, onClose, onAccountDeleted }) {
+    const { token } = useAuth();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
 
     if (!isOpen) return null;
